@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Онлайн Крестики-Нолики</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
     <style>
         * {
             margin: 0;
@@ -175,19 +176,19 @@
 <body>
     <div class="container">
         <h1>🎮 Крестики-Нолики</h1>
-
+        
         <!-- Меню -->
         <div class="menu" id="menu">
             <div class="room-section">
                 <button onclick="createRoom()">Создать комнату</button>
                 <button onclick="showJoinRoom()">Подключиться к комнате</button>
             </div>
-
+            
             <div class="room-section hidden" id="joinRoomSection">
                 <input type="text" id="roomIdInput" placeholder="ID комнаты">
                 <button onclick="joinRoom()">Войти</button>
             </div>
-
+            
             <div class="room-section hidden" id="playerNameSection">
                 <input type="text" id="playerNameInput" placeholder="Ваше имя" maxlength="15">
                 <button onclick="setPlayerName()">Готов</button>
@@ -199,7 +200,7 @@
             <div class="room-id">
                 Комната: <span id="currentRoomId"></span>
             </div>
-
+            
             <div class="players">
                 <div class="player" id="player1">
                     <span id="player1Name">Игрок 1</span> (X)
@@ -208,11 +209,11 @@
                     <span id="player2Name">Игрок 2</span> (O)
                 </div>
             </div>
-
+            
             <div class="status" id="gameStatus">
                 Ожидание второго игрока...
             </div>
-
+            
             <div class="board" id="board">
                 <button class="cell" onclick="makeMove(0)"></button>
                 <button class="cell" onclick="makeMove(1)"></button>
@@ -224,7 +225,7 @@
                 <button class="cell" onclick="makeMove(7)"></button>
                 <button class="cell" onclick="makeMove(8)"></button>
             </div>
-
+            
             <div class="game-info">
                 <button class="menu button" onclick="restartGame()">Новая игра</button>
                 <button class="menu button" onclick="leaveRoom()">Покинуть комнату</button>
@@ -238,17 +239,15 @@
 
     <script>
         // Firebase конфигурация (замените на свои данные)
-       const firebaseConfig = {
-  apiKey: "AIzaSyC2AOQ5q6aV6GpSaK7kxGJp6Y89sGxD2_U",
-  authDomain: "tic-tac-toe-online-7b1a1.firebaseapp.com",
-  databaseURL: "https://tic-tac-toe-online-7b1a1-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "tic-tac-toe-online-7b1a1",
-  storageBucket: "tic-tac-toe-online-7b1a1.firebasestorage.app",
-  messagingSenderId: "195991183710",
-  appId: "1:195991183710:web:21d06f10089334a7472fcf",
-  measurementId: "G-PVQJJ284LR"
-};
-
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com/",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
 
         // Инициализация Firebase
         firebase.initializeApp(firebaseConfig);
@@ -270,7 +269,7 @@
         function createRoom() {
             const roomId = Math.random().toString(36).substr(2, 6).toUpperCase();
             currentRoom = roomId;
-
+            
             // Создание комнаты в Firebase
             database.ref('rooms/' + roomId).set({
                 board: Array(9).fill(''),
@@ -280,7 +279,7 @@
                 players: {},
                 createdAt: firebase.database.ServerValue.TIMESTAMP
             });
-
+            
             document.getElementById('currentRoomId').textContent = roomId;
             showPlayerNameSection();
         }
@@ -294,7 +293,7 @@
         function joinRoom() {
             const roomId = document.getElementById('roomIdInput').value.toUpperCase();
             if (!roomId) return;
-
+            
             // Проверка существования комнаты
             database.ref('rooms/' + roomId).once('value', (snapshot) => {
                 if (snapshot.exists()) {
@@ -317,30 +316,30 @@
         function setPlayerName() {
             const playerName = document.getElementById('playerNameInput').value.trim();
             if (!playerName) return;
-
+            
             currentPlayer = {
                 id: Date.now().toString(),
                 name: playerName
             };
-
+            
             // Добавление игрока в комнату
             database.ref('rooms/' + currentRoom).once('value', (snapshot) => {
                 const room = snapshot.val();
                 const playerCount = Object.keys(room.players || {}).length;
-
+                
                 if (playerCount >= 2) {
                     alert('Комната заполнена!');
                     return;
                 }
-
+                
                 playerSymbol = playerCount === 0 ? 'X' : 'O';
-
+                
                 database.ref('rooms/' + currentRoom + '/players/' + currentPlayer.id).set({
                     name: playerName,
                     symbol: playerSymbol,
                     joinedAt: firebase.database.ServerValue.TIMESTAMP
                 });
-
+                
                 startGame();
             });
         }
@@ -349,7 +348,7 @@
         function startGame() {
             document.getElementById('menu').classList.add('hidden');
             document.getElementById('gameBoard').classList.remove('hidden');
-
+            
             // Слушатель изменений в комнате
             database.ref('rooms/' + currentRoom).on('value', (snapshot) => {
                 const room = snapshot.val();
@@ -364,13 +363,13 @@
         function updateGameUI() {
             const cells = document.querySelectorAll('.cell');
             const players = Object.values(gameState.players || {});
-
+            
             // Обновление доски
             gameState.board.forEach((cell, index) => {
                 cells[index].textContent = cell;
                 cells[index].disabled = cell !== '' || gameState.gameOver;
             });
-
+            
             // Обновление информации об игроках
             if (players.length >= 1) {
                 document.getElementById('player1Name').textContent = players[0].name;
@@ -378,13 +377,13 @@
             if (players.length >= 2) {
                 document.getElementById('player2Name').textContent = players[1].name;
             }
-
+            
             // Подсветка активного игрока
-            document.getElementById('player1').classList.toggle('active',
+            document.getElementById('player1').classList.toggle('active', 
                 gameState.currentTurn === 'X' && !gameState.gameOver);
-            document.getElementById('player2').classList.toggle('active',
+            document.getElementById('player2').classList.toggle('active', 
                 gameState.currentTurn === 'O' && !gameState.gameOver);
-
+            
             // Обновление статуса игры
             updateGameStatus();
         }
@@ -393,7 +392,7 @@
         function updateGameStatus() {
             const status = document.getElementById('gameStatus');
             const players = Object.values(gameState.players || {});
-
+            
             if (players.length < 2) {
                 status.textContent = 'Ожидание второго игрока...';
             } else if (gameState.winner) {
@@ -414,13 +413,13 @@
             if (gameState.board[index] !== '' || gameState.gameOver) return;
             if (gameState.currentTurn !== playerSymbol) return;
             if (Object.keys(gameState.players || {}).length < 2) return;
-
+            
             const newBoard = [...gameState.board];
             newBoard[index] = playerSymbol;
-
+            
             const winner = checkWinner(newBoard);
             const isGameOver = winner !== null || newBoard.every(cell => cell !== '');
-
+            
             database.ref('rooms/' + currentRoom).update({
                 board: newBoard,
                 currentTurn: gameState.currentTurn === 'X' ? 'O' : 'X',
@@ -436,7 +435,7 @@
                 [0, 3, 6], [1, 4, 7], [2, 5, 8], // вертикали
                 [0, 4, 8], [2, 4, 6] // диагонали
             ];
-
+            
             for (let pattern of winPatterns) {
                 const [a, b, c] = pattern;
                 if (board[a] && board[a] === board[b] && board[a] === board[c]) {
@@ -449,7 +448,7 @@
         // Перезапуск игры
         function restartGame() {
             if (Object.keys(gameState.players || {}).length < 2) return;
-
+            
             database.ref('rooms/' + currentRoom).update({
                 board: Array(9).fill(''),
                 currentTurn: 'X',
@@ -464,18 +463,18 @@
                 database.ref('rooms/' + currentRoom + '/players/' + currentPlayer.id).remove();
                 database.ref('rooms/' + currentRoom).off();
             }
-
+            
             // Сброс состояния
             currentRoom = null;
             currentPlayer = null;
             playerSymbol = null;
-
+            
             // Возврат к меню
             document.getElementById('gameBoard').classList.add('hidden');
             document.getElementById('menu').classList.remove('hidden');
             document.getElementById('joinRoomSection').classList.add('hidden');
             document.getElementById('playerNameSection').classList.add('hidden');
-
+            
             // Очистка полей
             document.getElementById('roomIdInput').value = '';
             document.getElementById('playerNameInput').value = '';
